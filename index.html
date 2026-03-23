@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>U+고객 맞춤 상담 서비스</title>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+    :root {
+      --primary: #e6007e;
+      --primary-dark: #b80065;
+      --primary-soft: #fff0f7;
+      --bg: #f7f8fc;
+      --card: rgba(255,255,255,0.92);
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --danger: #ef4444;
+      --success: #16a34a;
+      --shadow: 0 12px 32px rgba(31, 41, 55, 0.10);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Pretendard', sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(230,0,126,0.08), transparent 28%),
+        radial-gradient(circle at right center, rgba(230,0,126,0.06), transparent 26%),
+        linear-gradient(180deg, #fcfcff 0%, #f7f8fc 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .app {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 24px 18px 56px;
+      position: relative;
+    }
+
+    .top-mini-bar {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 9999;
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 0;
+    }
+
+    .planner-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(230, 0, 126, 0.18);
+      background: rgba(255,255,255,0.98);
+      color: var(--primary-dark);
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 10px 24px rgba(31, 41, 55, 0.14);
+      cursor: pointer;
+      transition: 0.18s ease;
+      position: relative;
+      z-index: 10000;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .planner-link:hover {
+      transform: translateY(-1px);
+      background: #fff;
+    }
+
+    .planner-modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, 0.36);
+      backdrop-filter: blur(6px);
+      z-index: 20000;
+      padding: 20px;
+    }
+
+    .planner-modal.active {
+      display: flex;
+    }
+
+    .planner-modal-card {
+      width: 100%;
+      max-width: 360px;
+      background: rgba(255,255,255,0.98);
+      border-radius: 24px;
+      box-shadow: 0 24px 48px rgba(15, 23, 42, 0.20);
+      border: 1px solid rgba(255,255,255,0.9);
+      padding: 24px;
+      animation: fadeUp 0.22s ease;
+    }
+
+    .planner-modal-title {
+      margin: 0 0 8px;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .planner-modal-desc {
+      margin: 0 0 16px;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .planner-error {
+      margin-top: 10px;
+      color: #be123c;
+      font-size: 13px;
+      font-weight: 600;
+      min-height: 18px;
+    }
+
+    .hero {
+      margin-top: 34px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 32px;
+      padding: 42px 28px;
+      background: linear-gradient(135deg, rgba(230,0,126,0.95), rgba(255,75,164,0.88));
+      color: white;
+      box-shadow: 0 24px 48px rgba(230,0,126,0.22);
+      margin-bottom: 22px;
+      z-index: 1;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      right: -70px;
+      top: -70px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 50%;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      right: 110px;
+      bottom: -50px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.16);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      backdrop-filter: blur(6px);
+    }
+
+    .hero h1 {
+      position: relative;
+      z-index: 1;
+      margin: 0 0 10px;
+      font-size: clamp(28px, 5vw, 42px);
+      line-height: 1.2;
+      letter-spacing: -0.03em;
+    }
+
+    .hero p {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.7;
+      opacity: 0.95;
+      max-width: 700px;
+    }
+
+    .panel {
+      display: none;
+      animation: fadeUp 0.28s ease;
+    }
+
+    .panel.active { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .menu-card,
+    .section-card,
+    .stat-card,
+    .table-card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.7);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+    }
+
+    .menu-card {
+      padding: 24px;
+      cursor: pointer;
+      transition: 0.22s ease;
+    }
+
+    .menu-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 36px rgba(31, 41, 55, 0.12);
+    }
+
+    .menu-icon {
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
+
+    .menu-card h3 {
+      margin: 0 0 8px;
+      font-size: 20px;
+    }
+
+    .menu-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .section-card {
+      padding: 24px;
+      margin-top: 18px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: -0.02em;
+    }
+
+    .section-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .field {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 18px;
+      background: #fff;
+    }
+
+    .field.full { grid-column: 1 / -1; }
+
+    .field-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+
+    .subtext {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .input,
+    .textarea,
+    .select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 13px 14px;
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+      transition: 0.15s ease;
+      background: #fff;
+    }
+
+    .input:focus,
+    .textarea:focus,
+    .select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(230,0,126,0.10);
+    }
+
+    .textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .check-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+
+    .check-item {
+      position: relative;
+    }
+
+    .check-item input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .check-item label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 52px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px 14px;
+      background: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.18s ease;
+    }
+
+    .check-item input:checked + label {
+      border-color: rgba(230,0,126,0.45);
+      background: var(--primary-soft);
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+
+    .dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid #d1d5db;
+      flex: 0 0 auto;
+      transition: 0.18s ease;
+      background: #fff;
+    }
+
+    .check-item input:checked + label .dot {
+      border-color: var(--primary);
+      background: radial-gradient(circle, var(--primary) 42%, white 44%);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      border-radius: 14px;
+      padding: 13px 18px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      transition: 0.18s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #ff4aa8);
+      color: white;
+      box-shadow: 0 10px 24px rgba(230,0,126,0.22);
+    }
+
+    .btn-primary:hover { transform: translateY(-1px); }
+
+    .btn-secondary {
+      background: white;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .btn-secondary:hover { background: #fafafa; }
+
+    .btn-danger {
+      background: #fff1f2;
+      color: #be123c;
+      border: 1px solid #fecdd3;
+    }
+
+    .btn-danger:hover { background: #ffe4e6; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .stat-card {
+      padding: 20px;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .table-card {
+      margin-top: 18px;
+      overflow: hidden;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 18px 0;
+    }
+
+    .toolbar-left {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      padding: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 14px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #fcfcfd;
+      color: #475569;
+      font-size: 13px;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: var(--primary-soft);
+      color: var(--primary-dark);
+      font-size: 12px;
+      font-weight: 700;
+      margin: 2px 6px 2px 0;
+      white-space: nowrap;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 860px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .hero { padding: 34px 22px; }
+      .section-card { padding: 18px; }
+      .table-wrap { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="top-mini-bar">
+      <button type="button" class="planner-link" id="plannerOpenBtn">🔒 플래너 전용</button>
+    </div>
+
+    <section class="hero">
+      <div class="hero-badge">✨ U+ 상담 접수 · 신입 응대 보조용</div>
+      <h1>U+고객 맞춤 상담 서비스</h1>
+      <p>
+        고객이 직접 체크하면 상담 니즈가 한눈에 정리되고,
+        신입도 방문 목적 · 요금 부담 · 기기변경 · 결합 · 인터넷/TV 니즈를 쉽게 파악할 수 있도록 만든 상담 접수 화면입니다.
+      </p>
+    </section>
+
+    <section id="menuPanel" class="panel active">
+      <div class="menu-grid">
+        <div class="menu-card" onclick="showPanel('formPanel')">
+          <div class="menu-icon">📝</div>
+          <h3>작성하기</h3>
+          <p>고객 문진표를 작성하고 상담 접수를 등록합니다.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="formPanel" class="panel">
+      <div class="section-card">
+        <div class="section-head">
+          <div>
+            <h2>상담 문진표 작성</h2>
+            <p>고객이 체크한 내용을 기준으로 니즈를 빠르게 파악할 수 있습니다.</p>
+          </div>
+        </div>
+
+        <form id="consultForm">
+          <div class="form-grid">
+            <div class="field">
+              <div class="field-title">고객명 <span class="subtext">선택 입력</span></div>
+              <input class="input" type="text" name="customerName" placeholder="예: 홍길동" />
+            </div>
+
+            <div class="field">
+              <div class="field-title">연락처 <span class="subtext">선택 입력</span></div>
+              <input class="input" type="text" name="phone" placeholder="예: 010-1234-5678" />
+            </div>
+
+            <div class="field full">
+              <div class="field-title">1. 방문 목적</div>
+              <div class="check-grid">
+                <div class="check-item"><input id="visit1" type="checkbox" name="visitPurpose" value="요금 절약 상담"><label for="visit1"><span class="dot"></span>요금 절약 상담</label></div>
+                <div class="check-item"><input id="visit2" type="checkbox" name="visitPurpose" value="휴대폰 기기변경"><label for="visit2"><span class="dot"></span>휴대폰 기기변경</label></div>
+                <div class="check-item"><input id="visit3" type="checkbox" name="visitPurpose" value="번호이동 / 통신사 변경"><label for="visit3"><span class="dot"></span>번호이동 / 통신사 변경</label></div>
+                <div class="check-item"><input id="visit4" type="checkbox" name="visitPurpose" value="인터넷 / TV 상담"><label for="visit4"><span class="dot"></span>인터넷 / TV 상담</label></div>
+                <div class="check-item"><input id="visit5" type="checkbox" name="visitPurpose" value="결합 / 가족 할인"><label for="visit5"><span class="dot"></span>결합 / 가족 할인</label></div>
+                <div class="check-item"><input id="visit6" type="checkbox" name="visitPurpose" value="기기 점검 / 불편 해결"><label for="visit6"><span class="dot"></span>기기 점검 / 불편 해결</label></div>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="field-title">2. 현재 사용 통신사</div>
+              <select class="select" name="carrier">
+                <option value="">선택하세요</option>
+                <option>LG U+</option>
+                <option>SKT</option>
+                <option>KT</option>
+                <option>알뜰폰</option>
+                <option>기타</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <div class="field-title">3. 현재 월 통신비</div>
+              <input class="input" type="text" name="monthlyBill" placeholder="예: 69,000원" />
+            </div>
+
+            <div class="field full">
+              <div class="field-title">4. 가장 불편한 점</div>
+              <div class="check-grid">
+                <div class="check-item"><input id="pain1" type="checkbox" name="painPoints" value="요금이 비쌈"><label for="pain1"><span class="dot"></span>요금이 비쌈</label></div>
+                <div class="check-item"><input id="pain2" type="checkbox" name="painPoints" value="데이터 부족"><label for="pain2"><span class="dot"></span>데이터 부족</label></div>
+                <div class="check-item"><input id="pain3" type="checkbox" name="painPoints" value="속도 느림 / 끊김"><label for="pain3"><span class="dot"></span>속도 느림 / 끊김</label></div>
+                <div class="check-item"><input id="pain4" type="checkbox" name="painPoints" value="배터리 빨리 닳음"><label for="pain4"><span class="dot"></span>배터리 빨리 닳음</label></div>
+                <div class="check-item"><input id="pain5" type="checkbox" name="painPoints" value="기기 느림 / 고장"><label for="pain5"><span class="dot"></span>기기 느림 / 고장</label></div>
+                <div class="check-item"><input id="pain6" type="checkbox" name="painPoints" value="혜택 / 할인 모름"><label for="pain6"><span class="dot"></span>혜택 / 할인 모름</label></div>
+              </div>
+            </div>
+
+            <div class="field full">
+              <div class="field-title">5. 데이터 사용 스타일</div>
+              <div class="check-grid">
+                <div class="check-item"><input id="data1" type="radio" name="dataStyle" value="적음"><label for="data1"><span class="dot"></span>적음 (와이파이 위주)</label></div>
+                <div class="check-item"><input id="data2" type="radio" name="dataStyle" value="보통"><label for="data2"><span class="dot"></span>보통</label></div>
+                <div class="check-item"><input id="data3" type="radio" name="dataStyle" value="많음"><label for="data3"><span class="dot"></span>많음 (영상/게임 자주)</label></div>
+                <div class="check-item"><input id="data4" type="radio" name="dataStyle" value="무제한 선호"><label for="data4"><span class="dot"></span>무제한 선호</label></div>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="field-title">6. 인터넷 / TV 사용 여부</div>
+              <select class="select" name="homeService">
+                <option value="">선택하세요</option>
+                <option>사용 안 함</option>
+                <option>인터넷만 사용 중</option>
+                <option>인터넷 + TV 사용 중</option>
+                <option>바꿀 생각 있음</option>
+                <option>상담 원함</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <div class="field-title">7. 결합 가능 여부</div>
+              <select class="select" name="bundleOption">
+                <option value="">선택하세요</option>
+                <option>결합 중</option>
+                <option>가족 결합 가능</option>
+                <option>본인만 사용</option>
+                <option>잘 모르겠음</option>
+              </select>
+            </div>
+
+            <div class="field full">
+              <div class="field-title">상담 전 참고사항</div>
+              <textarea class="textarea" name="memo" placeholder="상담 전 플래너가 미리 알아두면 좋은 점이나 특별히 궁금한 점을 적어주세요"></textarea>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn-primary">상담접수하기</button>
+            <button type="button" class="btn-secondary" onclick="resetFormOnly()">작성 내용 초기화</button>
+            <button type="button" class="btn-secondary" onclick="showPanel('menuPanel')">처음메뉴로 돌아가기</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="statusPanel" class="panel">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">총 상담 접수</div>
+          <div class="stat-value" id="totalCount">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">기기변경 관심</div>
+          <div class="stat-value" id="deviceCount">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">요금 절약 니즈</div>
+          <div class="stat-value" id="savingCount">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">인터넷/TV 상담 니즈</div>
+          <div class="stat-value" id="homeCount">0</div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="toolbar">
+          <div>
+            <h2 style="margin:0; font-size:22px;">상담 접수 현황</h2>
+            <p style="margin:6px 0 0; color:var(--muted); font-size:14px;">최근 접수된 고객 니즈를 한눈에 볼 수 있습니다.</p>
+          </div>
+          <div class="toolbar-left">
+            <button class="btn-secondary" onclick="showPanel('menuPanel')">메뉴 화면으로</button>
+            <button class="btn-primary" onclick="downloadCSV()">엑셀 다운로드</button>
+            <button class="btn-danger" onclick="clearAllData()">전체 데이터 초기화</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>접수일시</th>
+                <th>고객명</th>
+                <th>연락처</th>
+                <th>방문 목적</th>
+                <th>통신사 / 월 통신비</th>
+                <th>불편한 점</th>
+                <th>데이터 사용</th>
+                <th>인터넷/TV</th>
+                <th>결합</th>
+                <th>메모</th>
+              </tr>
+            </thead>
+            <tbody id="statusTableBody">
+              <tr><td colspan="10" class="empty">등록된 상담 접수 내역이 없습니다.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <div class="planner-modal" id="plannerModal">
+      <div class="planner-modal-card">
+        <h3 class="planner-modal-title">플래너 전용 페이지</h3>
+        <p class="planner-modal-desc">비밀번호를 입력하면 상담 접수 현황 페이지로 이동합니다.</p>
+        <input class="input" type="password" id="plannerPasswordInput" placeholder="비밀번호를 입력하세요" />
+        <div class="planner-error" id="plannerErrorMsg"></div>
+        <div class="actions" style="margin-top: 14px;">
+          <button type="button" class="btn-primary" id="plannerSubmitBtn">들어가기</button>
+          <button type="button" class="btn-secondary" id="plannerCloseBtn">닫기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'uplus_customer_consultations_v1';
+
+    function getData() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveData(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function showPanel(panelId) {
+      document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
+      document.getElementById(panelId).classList.add('active');
+    }
+
+    function getCheckedValues(name) {
+      return [...document.querySelectorAll(`[name="${name}"]:checked`)].map(el => el.value);
+    }
+
+    function formatDate(date) {
+      const d = new Date(date);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      return `${y}-${m}-${day} ${hh}:${mm}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function renderPills(items) {
+      if (!items || !items.length) return '-';
+      return items.map(item => `<span class="pill">${escapeHtml(item)}</span>`).join('');
+    }
+
+    function resetFormOnly() {
+      document.getElementById('consultForm').reset();
+    }
+
+    document.getElementById('consultForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const visitPurpose = getCheckedValues('visitPurpose');
+      const painPoints = getCheckedValues('painPoints');
+      const dataStyle = document.querySelector('[name="dataStyle"]:checked')?.value || '';
+
+      if (!visitPurpose.length) {
+        alert('방문 목적을 1개 이상 선택해주세요.');
+        return;
+      }
+
+      const formData = new FormData(e.target);
+      const row = {
+        createdAt: new Date().toISOString(),
+        customerName: formData.get('customerName') || '',
+        phone: formData.get('phone') || '',
+        visitPurpose,
+        carrier: formData.get('carrier') || '',
+        monthlyBill: formData.get('monthlyBill') || '',
+        painPoints,
+        dataStyle,
+        homeService: formData.get('homeService') || '',
+        bundleOption: formData.get('bundleOption') || '',
+        memo: formData.get('memo') || ''
+      };
+
+      const data = getData();
+      data.unshift(row);
+      saveData(data);
+      resetFormOnly();
+      renderStatus();
+      alert('상담 접수가 완료되었습니다.');
+      showPanel('menuPanel');
+    });
+
+    function renderStatus() {
+      const data = getData();
+      const tbody = document.getElementById('statusTableBody');
+
+      document.getElementById('totalCount').textContent = data.length;
+      document.getElementById('deviceCount').textContent = data.filter(item => item.visitPurpose.includes('휴대폰 기기변경')).length;
+      document.getElementById('savingCount').textContent = data.filter(item => item.visitPurpose.includes('요금 절약 상담') || item.painPoints.includes('요금이 비쌈')).length;
+      document.getElementById('homeCount').textContent = data.filter(item => item.visitPurpose.includes('인터넷 / TV 상담') || ['바꿀 생각 있음', '상담 원함', '인터넷만 사용 중', '인터넷 + TV 사용 중'].includes(item.homeService)).length;
+
+      if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="10" class="empty">등록된 상담 접수 내역이 없습니다.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = data.map(item => `
+        <tr>
+          <td>${escapeHtml(formatDate(item.createdAt))}</td>
+          <td>${escapeHtml(item.customerName || '-')}</td>
+          <td>${escapeHtml(item.phone || '-')}</td>
+          <td>${renderPills(item.visitPurpose)}</td>
+          <td>${escapeHtml((item.carrier || '-') + ' / ' + (item.monthlyBill || '-'))}</td>
+          <td>${renderPills(item.painPoints)}</td>
+          <td>${escapeHtml(item.dataStyle || '-')}</td>
+          <td>${escapeHtml(item.homeService || '-')}</td>
+          <td>${escapeHtml(item.bundleOption || '-')}</td>
+          <td>${escapeHtml(item.memo || '-')}</td>
+        </tr>
+      `).join('');
+    }
+
+    function downloadCSV() {
+      const data = getData();
+      if (!data.length) {
+        alert('다운로드할 데이터가 없습니다.');
+        return;
+      }
+
+      const rows = [
+        ['접수일시', '고객명', '연락처', '방문목적', '통신사', '월통신비', '불편한점', '데이터사용', '인터넷TV', '결합여부', '메모'],
+        ...data.map(item => [
+          formatDate(item.createdAt),
+          item.customerName,
+          item.phone,
+          item.visitPurpose.join(' | '),
+          item.carrier,
+          item.monthlyBill,
+          item.painPoints.join(' | '),
+          item.dataStyle,
+          item.homeService,
+          item.bundleOption,
+          item.memo
+        ])
+      ];
+
+      const csv = '\uFEFF' + rows.map(row => row.map(value => {
+        const safe = String(value ?? '').replace(/"/g, '""');
+        return `"${safe}"`;
+      }).join(',')).join('\n');
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `U+고객맞춤상담서비스_${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearAllData() {
+      const ok = confirm('정말 전체 상담 데이터를 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.');
+      if (!ok) return;
+      localStorage.removeItem(STORAGE_KEY);
+      renderStatus();
+      alert('전체 데이터가 초기화되었습니다.');
+    }
+
+    function openPlannerModal() {
+      const modal = document.getElementById('plannerModal');
+      const input = document.getElementById('plannerPasswordInput');
+      const error = document.getElementById('plannerErrorMsg');
+      error.textContent = '';
+      input.value = '';
+      modal.classList.add('active');
+      setTimeout(() => input.focus(), 30);
+    }
+
+    function closePlannerModal() {
+      document.getElementById('plannerModal').classList.remove('active');
+    }
+
+    function submitPlannerPassword() {
+      const input = document.getElementById('plannerPasswordInput');
+      const error = document.getElementById('plannerErrorMsg');
+
+      if (input.value.trim() !== '0728') {
+        error.textContent = '비밀번호가 올바르지 않습니다.';
+        input.focus();
+        input.select();
+        return;
+      }
+
+      closePlannerModal();
+      renderStatus();
+      showPanel('statusPanel');
+    }
+
+    document.getElementById('plannerOpenBtn').addEventListener('click', openPlannerModal);
+    document.getElementById('plannerSubmitBtn').addEventListener('click', submitPlannerPassword);
+    document.getElementById('plannerCloseBtn').addEventListener('click', closePlannerModal);
+
+    document.getElementById('plannerModal').addEventListener('click', function (e) {
+      if (e.target.id === 'plannerModal') closePlannerModal();
+    });
+
+    document.getElementById('plannerPasswordInput').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') submitPlannerPassword();
+      if (e.key === 'Escape') closePlannerModal();
+    });
+
+    renderStatus();
+  </script>
+</body>
+</html>
